@@ -1,0 +1,188 @@
+﻿
+@{
+    ViewBag.Title = "Usuario";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<!--  Indice de la pagina actual-->
+<ol class="breadcrumb mb-4 mt-3">
+    <li class="breadcrumb-item"><a href="index.html">Resumen</a></li>
+    <li class="breadcrumb-item active">Usuarios</li>
+</ol>
+
+<!--  Card dentro de la que va la lista-->
+<div class="card">
+    <div class="card-header">
+        <i class="fas fa-users me-1"></i>Lista de Usuarios
+    </div>
+
+    <div class="card-body">
+        <div class="row">
+            <div class="col-12">
+                <button type="button" id="btnNuevo" class="btn btn-success" onclick="AbrirModal(null)">Nuevo</button>
+            </div>
+        </div>
+
+        <hr />
+        <!--  Tabla de usuarios-->
+        <table id="idTablaUsuarios" class="display cell-border" style="width:100%">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Apellido</th>
+                    <th>Correo</th>
+                    <th>Activo</th>
+                    <th>Editar/Eliminar</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <!-- Aca va el tbody que lo llenamos con JS-->
+                </tr>
+            </tbody>
+        </table>
+
+    </div>
+</div>
+
+<!-- Modal de Boton usuario  -->
+<div class="modal" tabindex="-1" id="formModal" data-bs-backdrop="static">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Usuario</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body g-2">
+                <input type="hidden" id="txtId" value="0" />
+                <div class="row">
+
+                    <div class="col-sm-6">
+                        <label for="lblNombre" class="form-label">Nombre</label>
+                        <input type="text" class="form-control" id="txtNombre">
+                    </div>
+                    <div class="col-sm-6">
+                        <label for="lblApellido" class="form-label">Apellido</label>
+                        <input type="text" class="form-control" id="txtApellido">
+                    </div>
+                    <div class="col-sm-6">
+                        <label for="lblEmail" class="form-label">Email</label>
+                        <input type="text" class="form-control" id="txtEmail">
+                    </div>
+                    <div class="col-sm-6">
+                        <label for="lblActivo" class="form-label">Activo</label>
+                        <select class="form-select" Id="cboSelectActivo">
+                            <option value="1">Si</option>
+                            <option value="0">No</option>
+                        </select>
+                    </div>
+
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="Guardar()">Guardar cambios</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--  Scripts -->
+@section scripts{
+    <script>
+        let tableData;
+        let filaSeleccionada;
+        // Cargo todos los datos de la tabla en la variable
+        tableData = $("#idTablaUsuarios").DataTable({
+            responsive: true,
+            ordering: false,
+            "ajax": {
+                // Configuracion ajax
+                url: '@Url.Action("ListarUsuarios","Home")',
+                type: "Get",
+                dataType: "json"
+            },
+            "columns": [   // Columnas de la tabla body
+
+                { "data": "Nombre" },
+                { "data": "Apellido" },
+                { "data": "Email" },
+                {
+                    "data": "Activo", "render": function (valor) { //Botones activo o inactivo
+                        if (valor) {
+                            return '<span class="badge bg-success">Si</span>'
+                        } else {
+                            return '<span class="badge bg-danger">No</span>'
+                        }
+                    }
+                    },
+                {
+                    // ultima columna con iconos de editar o eliminar
+                    "defaultContent": '<button type="button" class="btn btn-primary btn-sm btn-editar"><i class="fas fa-pen me-1"></i></button>' +
+                    '<button type="button" class="btn btn-danger btn-sm ms-2 btn-eliminar"><i class="fas fa-trash me-1"></i></button>',
+                    "orderable": false,
+                    "searchable": false,
+                    "width": 90
+                     }
+            ],
+            language: {    //Tabla en español
+                url: '//cdn.datatables.net/plug-ins/1.13.5/i18n/es-ES.json',
+            }
+        });
+
+        function AbrirModal(json) { // Ventana emergente para cargar nuevo o modificar
+            //Cargo los valores en blanco
+            $("#txtNombre").val("");
+            $("#txtApellido").val("");
+            $("#txtEmail").val("");
+            $("#cboActivo").val(1);
+            $("#txtIdUsuario").val(0);
+
+            if (json != null) {  //Si no es null cargo los txt con la data json
+
+            $("#txtNombre").val(json.Nombre);
+            $("#txtApellido").val(json.Apellido);
+            $("#txtEmail").val(json.Email);
+            $("#cboActivo").val(json.Activo == true ? 1 : 0);
+            $("#txtIdUsuario").val(json.Id);
+
+            }
+            $("#formModal").modal("show");
+        }
+
+        $("#idTablaUsuarios tbody").on("click", '.btn-editar', function () {
+            //Si hago click en editar, voy al abrir modal con la data de la fila de la tabla
+             filaSeleccionada = $(this).closest("tr");
+            let data = tableData.row(filaSeleccionada).data();
+            console.log(data);
+            AbrirModal(data)
+        }
+        )
+
+        function Guardar() {
+            // Genero el usuario y si el Id es cero guardo nuevo sino edito existente
+            let usuario = {
+
+                Id: $("#txtId").val(),
+                Activo: $("#cboActivo").val() == 1 ? true : false,
+                Apellido: $("#txtApellido").val(),
+                Email: $("#txtEmail").val(),
+                Nombre: $("#txtNombre").val()
+
+            }
+
+            if (usuario.Id == 0) {
+                tableData.row.add(usuario).draw(false)
+
+            } else {
+                tableData.row(filaSeleccionada).data(usuario).draw(false);
+
+            }
+            $("#formModal").modal("hide")
+        }
+
+    </script>
+}
+
+
+

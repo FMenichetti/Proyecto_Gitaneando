@@ -53,24 +53,24 @@
                 <h5 class="modal-title">Usuario</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body g-2">
-                <input type="hidden" id="txtId" value="0" />
-                <div class="row">
+            <div class="modal-body ">
+                <input type="text" id="txtId" value="0" />
+                <div class="row g-2">
 
                     <div class="col-sm-6">
-                        <label for="lblNombre" class="form-label">Nombre</label>
+                        <label for="txtNombre" class="form-label">Nombre</label>
                         <input type="text" class="form-control" id="txtNombre">
                     </div>
                     <div class="col-sm-6">
-                        <label for="lblApellido" class="form-label">Apellido</label>
+                        <label for="txtApellido" class="form-label">Apellido</label>
                         <input type="text" class="form-control" id="txtApellido">
                     </div>
                     <div class="col-sm-6">
-                        <label for="lblEmail" class="form-label">Email</label>
+                        <label for="txtEmail" class="form-label">Email</label>
                         <input type="text" class="form-control" id="txtEmail">
                     </div>
                     <div class="col-sm-6">
-                        <label for="lblActivo" class="form-label">Activo</label>
+                        <label for="cboSelectActivo" class="form-label">Activo</label>
                         <select class="form-select" Id="cboSelectActivo">
                             <option value="1">Si</option>
                             <option value="0">No</option>
@@ -78,14 +78,23 @@
                     </div>
 
                 </div>
+                <div class="row mt-2">
+                    <div class=" col-12">
+                    </div>
+                    <div id="mensajeError" class="alert alert-danger" role="alert">
+                        A simple danger alert—check it out!
+                    </div>
+                </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-primary" onclick="Guardar()">Guardar cambios</button>
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-            </div>
+
+        <div class="modal-footer">
+            <button type="button" class="btn btn-primary" onclick="Guardar()">Guardar cambios</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+        </div>
         </div>
     </div>
 </div>
+
 
 <!--  Scripts -->
 @section scripts{
@@ -136,7 +145,8 @@
             $("#txtApellido").val("");
             $("#txtEmail").val("");
             $("#cboActivo").val(1);
-            $("#txtIdUsuario").val(0);
+            $("#txtId").val(0);
+            $("#mensajeError").hide();
 
             if (json != null) {  //Si no es null cargo los txt con la data json
 
@@ -144,7 +154,7 @@
             $("#txtApellido").val(json.Apellido);
             $("#txtEmail").val(json.Email);
             $("#cboActivo").val(json.Activo == true ? 1 : 0);
-            $("#txtIdUsuario").val(json.Id);
+            $("#txtId").val(json.IdUsuario);
 
             }
             $("#formModal").modal("show");
@@ -163,22 +173,77 @@
             // Genero el usuario y si el Id es cero guardo nuevo sino edito existente
             let usuario = {
 
-                Id: $("#txtId").val(),
+                IdUsuario: $("#txtId").val(),
                 Activo: $("#cboActivo").val() == 1 ? true : false,
                 Apellido: $("#txtApellido").val(),
                 Email: $("#txtEmail").val(),
                 Nombre: $("#txtNombre").val()
 
             }
+            console.log(usuario);
+            
+            jQuery.ajax({
+                url: '@Url.Action("GuardarUsuario","Home")', // La URL del servidor o recurso al que deseas hacer la solicitud
+                type: "POST", // El método HTTP que deseas utilizar (GET, POST, PUT, DELETE, etc.)
+                data: JSON.stringify({user : usuario}), // Datos que deseas enviar al servidor (por ejemplo, datos de formulario)
+                dataType: "json", // El tipo de datos que esperas recibir del servidor (json, xml, text, etc.)
+                contentType: "application/json; charset=utf-8",
 
-            if (usuario.Id == 0) {
-                tableData.row.add(usuario).draw(false)
+                success: function (data) {
+                    
+                    $(".modal.body").LoadingOverlay("hide");
 
-            } else {
-                tableData.row(filaSeleccionada).data(usuario).draw(false);
+                    if (usuario.IdUsuario == 0) {
 
-            }
-            $("#formModal").modal("hide")
+                        if (data.resultado != 0) {
+
+                            usuario.IdUsuario = data.resultado;
+                            tableData.row.add(usuario).draw(false);
+                            $("#formModal").modal("hide");
+
+                        } else {
+
+                            $("#mensajeError").text(data.mensaje);
+                            $("#mensajeError").show();
+
+                        }
+                    } else {
+
+                        if (data.resultado) {
+
+                            tableData.row(filaSeleccionada).data(usuario).draw(false);
+                            filaSeleccionada = null;
+                            $("#mensajeError").modal("hide");
+
+                        } else {
+
+                            $("#mensajeError").text(data.mensaje);
+                            $("#mensajeError").show();
+                        }
+
+                    }
+                $("#formModal").modal("hide");
+                },
+
+                error: function (error) {
+                    $("#mensajeError").text("Error ajax");
+                    $("#mensajeError").show();
+                    $(".modal.body").LoadingOverlay("hide");
+                },
+
+                beforeSend: function () {
+                    //metodo para mostrar loading
+                    $(".modal-body").LoadingOverlay("show", {
+
+                        text: "Cargando..",
+                        imageResizeFactor: 2,
+                        size: 14,
+                       });
+                }
+
+            })
+
+
         }
 
     </script>

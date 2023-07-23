@@ -129,14 +129,14 @@ namespace CapaDatos
                 datos.setearParametro("@Nombre", user.Nombre);
                 datos.setearParametro("@Apellido", user.Apellido);
                 datos.setearParametro("@Email", user.Email);
-                datos.setearParametro("@Pass", user.Pass);
+                datos.setearParametro("@Pass", 123);
                 datos.setearParametro("@Activo", user.Activo);
-                Comando.Parameters.Add("Resultado", SqlDbType.Int).Direction = ParameterDirection.Output;
-                Comando.Parameters.Add("Mensaje", SqlDbType.VarChar, 500).Direction = ParameterDirection.Output;
+                datos.Comando.Parameters.Add("Resultado", SqlDbType.Int).Direction = ParameterDirection.Output;
+                datos.Comando.Parameters.Add("Mensaje", SqlDbType.VarChar,500).Direction = ParameterDirection.Output;
                 datos.ejecutarAccion();
 
-                idAutogenerado = int.Parse(Comando.Parameters["Resultado"].Value.ToString());
-                mensaje = Comando.Parameters["Mensaje"].Value.ToString();
+                idAutogenerado = int.Parse(datos.Comando.Parameters["Resultado"].Value.ToString());
+                mensaje = datos.Comando.Parameters["Mensaje"].Value.ToString();
             }
             catch (Exception ex)
             {
@@ -160,12 +160,12 @@ namespace CapaDatos
                 datos.setearParametro("@Apellido", user.Apellido);
                 datos.setearParametro("@Email", user.Email);
                 datos.setearParametro("@Activo", user.Activo);
-                Comando.Parameters.Add("Resultado", SqlDbType.Int).Direction = ParameterDirection.Output;
-                Comando.Parameters.Add("Mensaje", SqlDbType.VarChar, 500).Direction = ParameterDirection.Output;
+                datos.Comando.Parameters.Add("Resultado", SqlDbType.Int).Direction = ParameterDirection.Output;
+                datos.Comando.Parameters.Add("Mensaje", SqlDbType.VarChar, 500).Direction = ParameterDirection.Output;
                 datos.ejecutarAccion();
 
-                resultado = bool.Parse(Comando.Parameters["Resultado"].Value.ToString());
-                mensaje = Comando.Parameters["Mensaje"].Value.ToString();
+                resultado = Convert.ToBoolean(datos.Comando.Parameters["Resultado"].Value);
+                mensaje = datos.Comando.Parameters["Mensaje"].Value.ToString();
             }
             catch (Exception ex)
             {

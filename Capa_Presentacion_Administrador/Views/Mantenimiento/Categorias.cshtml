@@ -4,5 +4,282 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h2>Categorias</h2>
+
+<!--  Indice de la pagina actual-->
+<ol class="breadcrumb mb-4 mt-3">
+    <li class="breadcrumb-item"><a href="index.html">Mantenimiento</a></li>
+    <li class="breadcrumb-item active">Categorias</li>
+</ol>
+
+<!--  Card dentro de la que va la lista-->
+<div class="card">
+    <div class="card-header">
+        <i class="fas fa-users me-1"></i>Lista de Categorias
+    </div>
+
+    <div class="card-body">
+        <div class="row">
+            <div class="col-12">
+                <button type="button" id="btnNuevo" class="btn btn-success" onclick="AbrirModal(null)">Nuevo</button>
+            </div>
+        </div>
+
+        <hr />
+        <!--  Tabla de categorias-->
+        <table id="idTablaCategorias" class="display cell-border" style="width:100%">
+            <thead>
+                <tr>
+                    <th>Descripcion</th>
+                    <th>Activo</th>
+                    <th>Editar/Eliminar</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <!-- Aca va el tbody que lo llenamos con JS-->
+                </tr>
+            </tbody>
+        </table>
+
+    </div>
+</div>
+
+<!-- Modal de Boton usuario  -->
+<div class="modal" tabindex="-1" id="formModal" data-bs-backdrop="static">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Categoria</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body ">
+                <input type="text" id="txtId" value="0" />
+                <div class="row g-1">
+
+                    <div class="col-sm-6">
+                        <label for="txtDescripcion" class="form-label">Descripcion</label>
+                        <input type="text" class="form-control" id="txtDescripcion" autocomplete="off">
+                    </div>
+                    <div class="col-sm-6">
+                        <label for="cboSelectActivo" class="form-label">Activo</label>
+                        <select class="form-select" Id="cboSelectActivo">
+                            <option value="1">Si</option>
+                            <option value="0">No</option>
+                        </select>
+                    </div>
+
+                </div>
+                <div class="row mt-2">
+                    <div class=" col-12">
+                    </div>
+                    <div id="mensajeError" class="alert alert-danger" role="alert">
+                        A simple danger alert—check it out!
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="Guardar()">Guardar cambios</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!--  Scripts -->
+@section scripts{
+    <script>
+        let tableData;
+        let filaSeleccionada;
+        // Cargo todos los datos de la tabla en la variable
+        tableData = $("#idTablaCategorias").DataTable({
+            responsive: true,
+            ordering: false,
+            "ajax": {
+                // Configuracion ajax
+                url: '@Url.Action("ListarCategorias", "Mantenimiento")',
+                type: "Get",
+                dataType: "json"
+            },
+            "columns": [   // Columnas de la tabla body
+
+                { "data": "Descripcion" },
+                {
+                    "data": "Activo", "render": function (valor) { //Botones activo o inactivo
+                        if (valor) {
+                            return '<span class="badge bg-success">Si</span>'
+                        } else {
+                            return '<span class="badge bg-danger">No</span>'
+                        }
+                    }
+                    },
+                {
+                    // ultima columna con iconos de editar o eliminar
+                    "defaultContent": '<button type="button" class="btn btn-primary btn-sm btn-editar"><i class="fas fa-pen me-1"></i></button>' +
+                    '<button type="button" class="btn btn-danger btn-sm ms-2 btn-eliminar"><i class="fas fa-trash me-1"></i></button>',
+                    "orderable": false,
+                    "searchable": false,
+                    "width": 90
+                     }
+            ],
+            language: {    //Tabla en español
+                url: '//cdn.datatables.net/plug-ins/1.13.5/i18n/es-ES.json',
+            }
+        });
+
+        function AbrirModal(json) { // Ventana emergente para cargar nuevo o modificar
+            //Cargo los valores en blanco
+            $("#txtDescripcion").val(" ");
+            $("#cboSelectActivo").val(1);
+            $("#txtId").val(0);
+            $("#mensajeError").hide();
+
+
+            if (json != null) {  //Si no es null cargo los txt con la data json
+                console.log(json);
+            $("#txtDescripcion").val(json.Descripcion);
+            $("#cboSelectActivo").val(json.Activo == true ? 1 : 0);
+            $("#txtId").val(json.IdCategoria);
+
+            }
+            $("#formModal").modal("show");
+        }
+        //EDITAR Categoria  //Si hago click en editar, voy al abrir modal con la data de la fila de la tabla
+        $("#idTablaCategorias tbody").on("click", '.btn-editar', function () {
+
+             filaSeleccionada = $(this).closest("tr");
+            let data = tableData.row(filaSeleccionada).data();
+            AbrirModal(data)
+        }
+        )
+
+        //ELIMINAR CATEGORIA    
+        $("#idTablaCategorias tbody").on("click", '.btn-eliminar', function () {
+            //Eliminar usuario
+
+            let categoriaSeleccionada = $(this).closest("tr");
+            let data = tableData.row(categoriaSeleccionada).data();
+
+            swal({
+                title: "Cuidado!",
+                text: "Seguro deseas eliminar la categoria?",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonClass: "btn-danger",
+                confirmButtonText: "Si, eliminar",
+                closeOnConfirm: true
+            },
+                function () {
+
+                    jQuery.ajax({
+
+                        url: '@Url.Action("EliminarCategoria", "Mantenimiento")',
+                        type: "POST",
+                        data: JSON.stringify({ id: data.IdCategoria }),
+                        dataType: "json",
+                        contentType: "application/json; charset=utf-8",
+
+                        success: function (data) {
+                            if (data.resultado) {
+                                tableData.row(categoriaSeleccionada).remove().draw();
+
+                            } else {
+                                swal("Error, no se pudo eliminar la categoria");
+
+                            }
+                        },
+
+                        error: function (error) {
+                            swal("Error, no se pudo eliminar la categoria");
+                        }
+                    });
+
+                }
+            )
+        })
+
+        function Guardar() {
+            // Genero el usuario y si el Id es cero guardo nuevo sino edito existente
+            let categoria = {
+
+                IdCategoria: $("#txtId").val(),
+                Activo: $("#cboSelectActivo").val() == 1 ? true : false,
+                Descripcion: $("#txtDescripcion").val()
+
+            }
+            
+
+            jQuery.ajax({
+                url: '@Url.Action("GuardarCategoria", "Mantenimiento")', // La URL del servidor o recurso al que deseas hacer la solicitud
+                type: "POST", // El método HTTP que deseas utilizar (GET, POST, PUT, DELETE, etc.)
+                data: JSON.stringify({categoria : categoria}), // Datos que deseas enviar al servidor (por ejemplo, datos de formulario)
+                dataType: "json", // El tipo de datos que esperas recibir del servidor (json, xml, text, etc.)
+                contentType: "application/json; charset=utf-8",
+
+                success: function (data) {
+
+                    $(".modal.body").LoadingOverlay("hide");
+
+                    if (categoria.IdCategoria == 0) {
+
+                        if (data.resultado != 0) {
+
+                            categoria.IdCategoria = data.resultado;
+                            tableData.row.add(categoria).draw(false);
+                            $("#formModal").modal("hide");
+
+                        } else {
+
+                            $("#mensajeError").text(data.mensaje);
+                            $("#mensajeError").show();
+
+                        }
+                    } else {
+
+                        if (data.resultado) {
+
+                            tableData.row(filaSeleccionada).data(categoria).draw(false);
+                            filaSeleccionada = null;
+                            $("#mensajeError").modal("hide");
+
+                        } else {
+
+                            $("#mensajeError").text(data.mensaje);
+                            $("#mensajeError").show();
+                        }
+
+                    }
+                $("#formModal").modal("hide");
+                },
+
+                error: function (error) {
+                    $("#mensajeError").text("Error ajax");
+                    $("#mensajeError").show();
+                    $(".modal.body").LoadingOverlay("hide");
+                },
+
+                beforeSend: function () {
+                    //metodo para mostrar loading
+                    //$(".modal-body").LoadingOverlay("show", {
+
+                    //    text: "Cargando..",
+                    //    imageResizeFactor: 2,
+                    //    size: 14,
+                    //   });
+                    $.LoadingOverlay("show");
+
+                    // Hide it after 3 seconds
+                    setTimeout(function () {
+                        $.LoadingOverlay("hide");
+                    }, 1000);
+                }
+
+            })
+
+
+        }
+
+    </script>
+}
 

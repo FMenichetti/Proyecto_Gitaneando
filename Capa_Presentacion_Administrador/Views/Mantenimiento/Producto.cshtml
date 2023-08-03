@@ -4,5 +4,506 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h2>Producto</h2>
+
+<!--  Indice de la pagina actual-->
+<ol class="breadcrumb mb-4 mt-3">
+    <li class="breadcrumb-item"><a href="index.html">Mantenimiento</a></li>
+    <li class="breadcrumb-item active">Productos</li>
+</ol>
+
+<!--  Card dentro de la que va la lista-->
+<div class="card">
+    <div class="card-header">
+        <i class="fas fa-boxes me-1"></i>Lista de Productos
+    </div>
+
+    <div class="card-body">
+        <div class="row">
+            <div class="col-12">
+                <button type="button" id="btnNuevo" class="btn btn-success" onclick="AbrirModal(null)">Nuevo</button>
+            </div>
+        </div>
+
+        <hr />
+        <!--  Tabla de categorias-->
+        <table id="idTabla" class="display cell-border" style="width:100%">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Descripcion</th>
+                    <th>Marca</th>
+                    <th>Categoria</th>
+                    <th>Precio</th>
+                    <th>Stock</th>
+                    <th>Activo</th>
+                    <th>Editar/Eliminar</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <!-- Aca va el tbody que lo llenamos con JS-->
+                </tr>
+            </tbody>
+        </table>
+
+    </div>
+</div>
+
+<!-- Modal de Boton usuario  -->
+<div class="modal" tabindex="-1" id="formModal" data-bs-backdrop="static">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Producto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body ">
+                <input type="text" id="txtId" value="0" />
+                <form class="row" id="contenedor">
+
+                    <div class="col-sm-3">
+                        <div class="mb-3">
+                            <img id="imgProducto" height="197" width="200" class="border rounded mx-auto d-block img-fluid" />
+                        </div>
+                        <div class="mb-3">
+                            <input class="form-control" type="file" id="fileProducto" acept="image/png, image/jpg, image/jpeg" onchange="mostrarImagen(this)" />
+                        </div>
+                    </div>
+
+                    <div class="col-sm-3">
+                        <div class="mb-3">
+                            <label class="form-label" for="txtNombre">Nombre</label>
+                            <input type="text" class="form-control" id="txtNombre" name="nombre"  />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="txtDescripcion">Descripcion</label>
+                            <textarea type="text" class="form-control" id="txtDescripcion" name="descripcion" style="height:125px; resize:none"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-3">
+                        <div class="mb-3">
+                            <label class="form-label" for="cboMarca">Marca</label>
+                            <select id="cboMarca" class="form-select"></select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="cboCategoria">Categoria</label>
+                            <select id="cboCategoria" class="form-select"></select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="txtPrecio">Precio</label>
+                            <input type="text" class="form-control" id="txtPrecio" name="precio" />
+                        </div>
+
+                    </div>
+
+                    <div class="col-sm-3">
+                        <div class="mb-3">
+                            <label class="form-label" for="txtStock">Stock</label>
+                            <input type="text" class="form-control" id="txtStock" name="stock" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="cboSelectActivo">Activo</label>
+                            <select class="form-select" Id="cboSelectActivo">
+                                <option value="1">Si</option>
+                                <option value="0">No</option>
+                            </select>
+                        </div>
+
+                    </div>
+
+                </form>
+
+                <!--BOTONES DE ALERTA DE ELIMINACION-->
+                <div class="row mt-2">
+                    <div class=" col-12">
+                    </div>
+                    <div id="mensajeError" class="alert alert-danger" role="alert">
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="Guardar()">Guardar cambios</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!--  Scripts -->
+@section scripts{
+    <script>
+        let tableData;
+        let filaSeleccionada;
+        // MOSTRAR IMAGEN PRODUCTO EN MODAL
+        function mostrarImagen(input) {
+
+            if (input.files) {
+                let reader = new FileReader();
+                reader.onload = function(e) {
+                    $("#imgProducto").attr("src", e.target.result).width(200).height(197)
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        // CARGA DE DATOS DE TABLA
+        tableData = $("#idTabla").DataTable({
+            responsive: true,
+            ordering: false,
+            "ajax": {
+                // Configuracion ajax
+                url: '@Url.Action("ListarProducto", "Mantenimiento")',
+                type: "Get",
+                dataType: "json"
+            },
+            "columns": [   // Columnas de la tabla body
+
+                { "data": "Nombre" },
+                { "data": "Descripcion" },
+                {
+                    "data": "oMarca", "render": function (data) {
+                        return data.Descripcion
+                    }
+                },
+                {
+                    "data": "oCategoria", "render": function (data) {
+                        return data.Descripcion
+                    }
+                },
+                { "data": "Precio" },
+                { "data": "Stock" },
+                {
+                    "data": "Activo", "render": function (valor) { //Botones activo o inactivo
+                        if (valor) {
+                            return '<span class="badge bg-success">Si</span>'
+                        } else {
+                            return '<span class="badge bg-danger">No</span>'
+                        }
+                    }
+                },
+                {
+                    // ultima columna con iconos de editar o eliminar
+                    "defaultContent": '<button type="button" class="btn btn-primary btn-sm btn-editar"><i class="fas fa-pen me-1"></i></button>' +
+                    '<button type="button" class="btn btn-danger btn-sm ms-2 btn-eliminar"><i class="fas fa-trash me-1"></i></button>',
+                    "orderable": false,
+                    "searchable": false,
+                    "width": 90
+                     }
+            ],
+            language: {    //Tabla en español
+                url: '//cdn.datatables.net/plug-ins/1.13.5/i18n/es-ES.json',
+            }
+        });
+
+        //LLENAR DESPLEGABLE MARCA
+        jQuery.ajax({
+
+                        url: '@Url.Action("ListarMarca", "Mantenimiento")',
+                        type: "GET",
+                        data: null,
+                        dataType: "json",
+                        contentType: "application/json; charset=utf-8",
+
+                        success: function (data) {
+                            $("<option>").attr({ "value": "0", "disabled": true}).text("Seleccionar").appendTo("#cboMarca");
+
+                            $.each(data.data, function (index, item) {
+                                $("<option>").attr({ "value": item.IdMarca}).text(item.Descripcion).appendTo("#cboMarca");
+                            })
+                        },
+
+                        error: function (error) {
+                            console.log(error);
+                        }
+        });
+
+        //LLENAR DESPLEGABLE CATEGORIA
+        jQuery.ajax({
+
+                        url: '@Url.Action("ListarCategorias", "Mantenimiento")',
+                        type: "GET",
+                        data: null,
+                        dataType: "json",
+                        contentType: "application/json; charset=utf-8",
+
+                        success: function (data) {
+                            $("<option>").attr({ "value": "0", "disabled": true}).text("Seleccionar").appendTo("#cboCategoria");
+
+                            $.each(data.data, function (index, item) {
+                                $("<option>").attr({ "value": item.IdCategoria}).text(item.Descripcion).appendTo("#cboCategoria");
+                            })
+                        },
+
+                        error: function (error) {
+                            console.log(error);
+                        }
+        });
+
+
+
+
+        ////VALIDACIONES PARA MODAL video 22 no lo pude hacer andar
+        //jQuery.validator.addMethod("preciodecimal", function (value, element) {
+        //    return this.optional(element) || /^\d{0,4}(\.\d{0,2})?$/i.test(value);
+        //}, " - El formato correcto del precio es ##.##");
+
+        //$("#contenedor").validate({
+        //    rules: {
+        //        nombre: {
+        //            required: false
+        //        },
+        //        descripcion: {
+        //            required: true
+        //        },
+        //        precio: {
+        //            required: true,
+        //            preciodecimal: true
+        //        },
+        //        stock: {
+        //            required: true,
+        //            number: true
+        //        }
+        //    },
+        //    messages: {
+        //        nombre: "- Campo de nombre es obligatorio",
+        //        descripcion: "- Campo de descripcion es obligatorio",
+        //        precio: { required: "- Campo de precio es obligatorio", preciodecimal: "- El formato correcto del precio es ##.##" },
+        //        stock: { required: "- Campo de stock es obligatorio", number: "- Solo numeros en campo Stock" }
+        //    },
+        //    errorElement: "div",
+        //    errorLabelContainer: ".alert-danger"
+        //})
+
+
+
+        // MODAL EMERGENTE PARA NUEVO O MODIFICAR
+        function AbrirModal(json) {
+            //Cargo los valores en blanco
+            $("#txtId").val(0);
+            $("#imgProducto").removeAttr("src");
+            $("#txtNombre").val(" ");
+            $("#txtDescripcion").val(" ");
+            $("#cboMarca").val($("cboMarca option:first").val());
+            $("#cboCategoria").val($("cboCategoria option:first").val());
+            $("#txtPrecio").val(" ");
+            $("#txtStock").val(" ");
+            $("#cboSelectActivo").val(1);
+            $("#mensajeError").hide();
+
+
+            if (json != null) {  //Si no es null cargo los txt con la data json
+                console.log(json);
+
+
+                $("#txtId").val(json.IdProducto);
+                $("#txtNombre").val(json.Nombre);
+                $("#txtDescripcion").val(json.Descripcion);
+                $("#cboMarca").val(json.oMarca.IdMarca);
+                $("#cboCategoria").val(json.oCategoria.IdCategoria);
+                $("#txtPrecio").val(json.Precio);
+                $("#txtStock").val(json.Stock);
+                $("#cboSelectActivo").val(json.Activo == true ? 1 : 0);
+
+                //Logica para cargar imagen al modificar
+                jQuery.ajax({
+                    url: '@Url.Action("ImagenProducto", "Mantenimiento")',
+                    type: "POST",
+                    data: JSON.stringify({ id: json.IdProducto }),
+                    dataType: "json",
+                    contentType: "application/json; charset=utf-8",
+
+                    success: function (data) {
+                        console.log(data);
+                        $("#imgProducto").LoadingOverlay("hide");
+                        if (data.conversion) {
+                            $("#imgProducto").attr({ "src": "data:image/" + data.extension + ";base64," + data.textoBase64 });
+                        }
+                    },
+                    error: function (error) {
+                        $("#imgProducto").LoadingOverlay("hide");
+                        $("#mensajeError").show();
+                        $("#mensajeError").text("Error al mostrar imagen");
+                    },
+                    beforeSend: function () {
+                        $("#imgProducto").LoadingOverlay("show");
+                    },
+                });
+
+
+            }
+            $("#formModal").modal("show");
+        }
+
+
+
+        // BOTON EDITAR
+        $("#idTabla tbody").on("click", '.btn-editar', function () {
+
+             filaSeleccionada = $(this).closest("tr");
+            let data = tableData.row(filaSeleccionada).data();
+            AbrirModal(data)
+        }
+        )
+
+        // BOTON ELIMINAR
+        $("#idTabla tbody").on("click", '.btn-eliminar', function () {
+
+            let productoSeleccionado = $(this).closest("tr");
+            let data = tableData.row(productoSeleccionado).data();
+
+            swal({
+                title: "Cuidado!",
+                text: "Seguro deseas eliminar el producto?",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonClass: "btn-danger",
+                confirmButtonText: "Si, eliminar",
+                closeOnConfirm: true
+            },
+                function () {
+
+                    jQuery.ajax({
+
+                        url: '@Url.Action("EliminarProducto", "Mantenimiento")',
+                        type: "POST",
+                        data: JSON.stringify({ id: data.IdProducto }),
+                        dataType: "json",
+                        contentType: "application/json; charset=utf-8",
+
+                        success: function (data) {
+                            if (data.resultado) {
+                                tableData.row(productoSeleccionado).remove().draw();
+
+                            } else {
+                                swal("Error, no se pudo eliminar el producto");
+
+                            }
+                        },
+
+                        error: function (error) {
+                            swal("Error, no se pudo eliminar el producto");
+                        }
+                    });
+
+                }
+            )
+        })
+        /// BOTON GUARDAR
+        function Guardar() {
+            // Ejecuto las validaciones, no las pude hacer andar
+            //if (!$("#contenedor").valid()) {
+            //    return
+            //}
+
+            // Genero el usuario y si el Id es cero guardo nuevo sino edito existente
+            let imagenSeleccionada = $("#fileProducto")[0].files[0];
+
+            console.log(imagenSeleccionada);
+
+            let producto = {
+
+                IdProducto: $("#txtId").val(),
+                Nombre: $("#txtNombre").val(),
+                Descripcion: $("#txtDescripcion").val(),
+                oMarca: {
+                    IdMarca: $("#cboMarca option:selected").val(),
+                    Descripcion: $("#cboMarca option:selected").text()
+                },
+                oCategoria: {
+                    IdCategoria: $("#cboCategoria option:selected").val(),
+                    Descripcion: $("#cboCategoria option:selected").text()
+                },
+                Precio: $("#txtPrecio").val(),
+                precioTexto: $("#txtPrecio").val(),
+                Stock: $("#txtStock").val(),
+                Activo: $("#cboSelectActivo").val() == 1 ? true : false,
+            }
+            //Estos van a ser los string que le mando al metodo Guardar
+            let request = new FormData();
+            request.append("objeto", JSON.stringify(producto));
+            request.append("archivoImagen", imagenSeleccionada);
+
+
+
+            jQuery.ajax({
+                url: '@Url.Action("GuardarProducto", "Mantenimiento")',
+                type: "POST",
+                data: request,
+                processData: false,
+                contentType: false,
+
+                success: function (data) {
+
+                    $(".modal.body").LoadingOverlay("hide");
+
+                    if (producto.IdProducto == 0) {
+
+                        if (data.idGenerado != 0) {
+
+                            producto.IdProducto = data.idGenerado;
+                            tableData.row.add(producto).draw(false);
+                            $("#formModal").modal("hide");
+
+                        } else {
+
+                            $("#mensajeError").text(data.mensaje);
+                            $("#mensajeError").show();
+
+                        }
+                    } else {
+
+                        if (data.operacionExitosa) {
+
+                            tableData.row(filaSeleccionada).data(producto).draw(false);
+                            filaSeleccionada = null;
+                            $("#mensajeError").modal("hide");
+
+                        } else {
+
+                            $("#mensajeError").text(data.mensaje);
+                            $("#mensajeError").show();
+                        }
+
+                    }
+                $("#formModal").modal("hide");
+                },
+
+                error: function (error) {
+                    $("#mensajeError").text("Error ajax");
+                    $("#mensajeError").show();
+                    $(".modal.body").LoadingOverlay("hide");
+                },
+
+                beforeSend: function () {
+                    //metodo para mostrar loading
+                    //$(".modal-body").LoadingOverlay("show", {
+
+                    //    text: "Cargando..",
+                    //    imageResizeFactor: 2,
+                    //    size: 14,
+                    //   });
+                    $.LoadingOverlay("show");
+
+                    // Hide it after 3 seconds
+                    setTimeout(function () {
+                        $.LoadingOverlay("hide");
+                    }, 1000);
+                }
+
+            })
+
+
+        }
+
+
+
+
+
+
+    </script>
+}
+
 

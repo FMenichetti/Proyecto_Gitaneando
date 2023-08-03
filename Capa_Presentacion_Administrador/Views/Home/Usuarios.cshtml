@@ -54,20 +54,20 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body ">
-                <input type="text" id="txtId" value="0" />
+                <input type="hidden" id="txtId" value="0" />
                 <div class="row g-2">
 
                     <div class="col-sm-6">
                         <label for="txtNombre" class="form-label">Nombre</label>
-                        <input type="text" class="form-control" id="txtNombre">
+                        <input type="text" class="form-control" id="txtNombre" autocomplete="off">
                     </div>
                     <div class="col-sm-6">
                         <label for="txtApellido" class="form-label">Apellido</label>
-                        <input type="text" class="form-control" id="txtApellido">
+                        <input type="text" class="form-control" id="txtApellido" autocomplete="off">
                     </div>
                     <div class="col-sm-6">
                         <label for="txtEmail" class="form-label">Email</label>
-                        <input type="text" class="form-control" id="txtEmail">
+                        <input type="text" class="form-control" id="txtEmail" autocomplete="off">
                     </div>
                     <div class="col-sm-6">
                         <label for="cboSelectActivo" class="form-label">Activo</label>
@@ -87,10 +87,10 @@
                 </div>
             </div>
 
-        <div class="modal-footer">
-            <button type="button" class="btn btn-primary" onclick="Guardar()">Guardar cambios</button>
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-        </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="Guardar()">Guardar cambios</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
         </div>
     </div>
 </div>
@@ -111,6 +111,7 @@
                 type: "Get",
                 dataType: "json"
             },
+           
             "columns": [   // Columnas de la tabla body
 
                 { "data": "Nombre" },
@@ -144,44 +145,89 @@
             $("#txtNombre").val("");
             $("#txtApellido").val("");
             $("#txtEmail").val("");
-            $("#cboActivo").val(1);
+            $("#cboSelectActivo").val(1);
             $("#txtId").val(0);
             $("#mensajeError").hide();
+            
 
             if (json != null) {  //Si no es null cargo los txt con la data json
-
+                console.log(json);
             $("#txtNombre").val(json.Nombre);
             $("#txtApellido").val(json.Apellido);
             $("#txtEmail").val(json.Email);
-            $("#cboActivo").val(json.Activo == true ? 1 : 0);
+            $("#cboSelectActivo").val(json.Activo == true ? 1 : 0);
             $("#txtId").val(json.IdUsuario);
-
+               
             }
             $("#formModal").modal("show");
         }
-
+        //EDITAR USUARIO  //Si hago click en editar, voy al abrir modal con la data de la fila de la tabla
         $("#idTablaUsuarios tbody").on("click", '.btn-editar', function () {
-            //Si hago click en editar, voy al abrir modal con la data de la fila de la tabla
+
              filaSeleccionada = $(this).closest("tr");
             let data = tableData.row(filaSeleccionada).data();
-            console.log(data);
             AbrirModal(data)
         }
         )
+
+        //ELIMINAR USUARIO
+        $("#idTablaUsuarios tbody").on("click", '.btn-eliminar', function () {
+            //Eliminar usuario
+                    
+            let usuarioSeleccionado = $(this).closest("tr");
+            let data = tableData.row(usuarioSeleccionado).data();
+
+            swal({
+                title: "Cuidado!",
+                text: "Seguro deseas eliminar el usuario de forma permanente?",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonClass: "btn-danger",
+                confirmButtonText: "Si, eliminar",
+                closeOnConfirm: true
+            },
+                function () {
+
+                    jQuery.ajax({
+
+                        url: '@Url.Action("EliminarUsuario", "Home")',
+                        type: "POST",
+                        data: JSON.stringify({ id: data.IdUsuario }),
+                        dataType: "json",
+                        contentType: "application/json; charset=utf-8",
+
+                        success: function (data) {
+                            if (data.resultado) {
+                                tableData.row(usuarioSeleccionado).remove().draw();
+
+                            } else {
+                                swal("Error, no se pudo eliminar el usuario");
+
+                            }
+                        },
+
+                        error: function (error) {
+                            swal("Error, no se pudo eliminar el usuario");
+                        }
+                    });
+
+                }
+            )
+        })
 
         function Guardar() {
             // Genero el usuario y si el Id es cero guardo nuevo sino edito existente
             let usuario = {
 
                 IdUsuario: $("#txtId").val(),
-                Activo: $("#cboActivo").val() == 1 ? true : false,
+                Activo: $("#cboSelectActivo").val() == 1 ? true : false,
                 Apellido: $("#txtApellido").val(),
                 Email: $("#txtEmail").val(),
                 Nombre: $("#txtNombre").val()
 
             }
             console.log(usuario);
-            
+
             jQuery.ajax({
                 url: '@Url.Action("GuardarUsuario","Home")', // La URL del servidor o recurso al que deseas hacer la solicitud
                 type: "POST", // El método HTTP que deseas utilizar (GET, POST, PUT, DELETE, etc.)
@@ -190,7 +236,7 @@
                 contentType: "application/json; charset=utf-8",
 
                 success: function (data) {
-                    
+
                     $(".modal.body").LoadingOverlay("hide");
 
                     if (usuario.IdUsuario == 0) {
@@ -233,12 +279,18 @@
 
                 beforeSend: function () {
                     //metodo para mostrar loading
-                    $(".modal-body").LoadingOverlay("show", {
+                    //$(".modal-body").LoadingOverlay("show", {
 
-                        text: "Cargando..",
-                        imageResizeFactor: 2,
-                        size: 14,
-                       });
+                    //    text: "Cargando..",
+                    //    imageResizeFactor: 2,
+                    //    size: 14,
+                    //   });
+                    $.LoadingOverlay("show");
+
+                    // Hide it after 3 seconds
+                    setTimeout(function () {
+                        $.LoadingOverlay("hide");
+                    }, 1000);
                 }
 
             })
@@ -248,6 +300,3 @@
 
     </script>
 }
-
-
-

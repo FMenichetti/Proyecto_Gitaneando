@@ -246,36 +246,36 @@
 
 
         ////VALIDACIONES PARA MODAL video 22 no lo pude hacer andar
-        //jQuery.validator.addMethod("preciodecimal", function (value, element) {
-        //    return this.optional(element) || /^\d{0,4}(\.\d{0,2})?$/i.test(value);
-        //}, " - El formato correcto del precio es ##.##");
+        jQuery.validator.addMethod("preciodecimal", function (value, element) {
+            return this.optional(element) || /^\d{0,4}(\.\d{0,2})?$/i.test(value);
+        }, " - El formato correcto del precio es ##.##");
 
-        //$("#contenedor").validate({
-        //    rules: {
-        //        nombre: {
-        //            required: false
-        //        },
-        //        descripcion: {
-        //            required: true
-        //        },
-        //        precio: {
-        //            required: true,
-        //            preciodecimal: true
-        //        },
-        //        stock: {
-        //            required: true,
-        //            number: true
-        //        }
-        //    },
-        //    messages: {
-        //        nombre: "- Campo de nombre es obligatorio",
-        //        descripcion: "- Campo de descripcion es obligatorio",
-        //        precio: { required: "- Campo de precio es obligatorio", preciodecimal: "- El formato correcto del precio es ##.##" },
-        //        stock: { required: "- Campo de stock es obligatorio", number: "- Solo numeros en campo Stock" }
-        //    },
-        //    errorElement: "div",
-        //    errorLabelContainer: ".alert-danger"
-        //})
+        $("#contenedor").validate({
+            rules: {
+                nombre: {
+                    required: true
+                },
+                descripcion: {
+                    required: true
+                },
+                precio: {
+                    required: true,
+                    preciodecimal: true
+                },
+                stock: {
+                    required: true,
+                    number: true
+                }
+            },
+            messages: {
+                nombre: "- Campo de nombre es obligatorio",
+                descripcion: "- Campo de descripcion es obligatorio",
+                precio: { required: "- Campo de precio es obligatorio", preciodecimal: "- El formato correcto del precio es ##.##" },
+                stock: { required: "- Campo de stock es obligatorio", number: "- Solo numeros en campo Stock" }
+            },
+            errorElement: "div",
+            errorLabelContainer: ".alert-danger"
+        })
 
 
 
@@ -394,9 +394,9 @@
         /// BOTON GUARDAR
         function Guardar() {
             // Ejecuto las validaciones, no las pude hacer andar
-            //if (!$("#contenedor").valid()) {
-            //    return
-            //}
+            if (!$("#contenedor").valid()) {
+                return
+            }
 
             // Genero el usuario y si el Id es cero guardo nuevo sino edito existente
             let imagenSeleccionada = $("#fileProducto")[0].files[0];

@@ -43,10 +43,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AccesoDatos.cs" />
+    <Compile Include="DatosCarrito.cs" />
     <Compile Include="DatosCategoria.cs" />
+    <Compile Include="DatosCliente.cs" />
     <Compile Include="DatosDashboard.cs" />
     <Compile Include="DatosMarca.cs" />
     <Compile Include="DatosProducto.cs" />
+    <Compile Include="DatosUbicacion.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="DatosUsuario.cs" />
   </ItemGroup>
@@ -55,6 +58,9 @@
       <Project>{55f16f4d-c91f-4b5e-bdee-f36fa0617ecc}</Project>
       <Name>CapaDominio</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Administrador\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

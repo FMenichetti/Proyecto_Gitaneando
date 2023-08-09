@@ -12,6 +12,7 @@ using System.IO;
 
 namespace Capa_Presentacion_Administrador.Controllers
 {
+    [Authorize]
     public class MantenimientoController : Controller
     {
         // GET: Mantenimiento

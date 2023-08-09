@@ -13,6 +13,7 @@ namespace CapaDominio
         public string Apellido { get; set; }
         public string Email { get; set; }
         public string Pass { get; set; }
+        public string  ConfirmarPass { get; set; }
         public bool Restablecer { get; set; }
 
     }

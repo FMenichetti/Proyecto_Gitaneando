@@ -11,6 +11,7 @@ using System.IO;
 
 namespace Capa_Presentacion_Administrador.Controllers
 {
+    [Authorize]
     public class HomeController : Controller
     {
         public ActionResult Index()

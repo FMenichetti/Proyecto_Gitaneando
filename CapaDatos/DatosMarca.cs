@@ -127,5 +127,38 @@ namespace CapaDatos
             return resultado;
         }
 
+        public List<Marca> ListarMarcaPorCategoria(int idCategoria)
+        {
+            AccesoDatos datos = new AccesoDatos();
+            List<Marca> lista = new List<Marca>();
+
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine("select distinct m.IdMarcas, m.Descripcion from Producto p");
+            sb.AppendLine(" inner join Categoria c  on c.IdCategoria = p.IdCategoria ");
+            sb.AppendLine(" inner join Marcas m on m.IdMarcas = p.IdMarca and m.Activo = 1 ");
+            sb.AppendLine(" where c.IdCategoria = iif (@idCategoria = 0, c.idCategoria, @idCategoria)");
+
+            try
+            {
+                datos.setearConsulta(sb.ToString());
+                datos.setearParametro("@idCategoria", idCategoria);
+                datos.ejecutarLectura();
+                while (datos.lector.Read())
+                {
+                    Marca marca = new Marca();
+                    marca.IdMarca = int.Parse(datos.lector["IdMarcas"].ToString());
+                    marca.Descripcion = datos.lector["Descripcion"].ToString();
+                    lista.Add(marca);
+
+                }
+                return lista;
+            }
+            catch (Exception)
+            {
+                return lista = new List<Marca>();
+
+            }
+            finally { datos.cerrarConexion(); }
+        }
     }
 }

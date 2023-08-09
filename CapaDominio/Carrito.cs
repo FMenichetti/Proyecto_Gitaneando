@@ -12,6 +12,7 @@ namespace CapaDominio
         public int IdCliente { get; set; }
         public int IdProducto { get; set; }
         public int Cantidad { get; set; }
+        public Producto oProducto { get; set; }//revisar lo agregue 
 
     }
 }

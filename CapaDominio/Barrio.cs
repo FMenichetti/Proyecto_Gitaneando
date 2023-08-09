@@ -8,7 +8,10 @@ namespace CapaDominio
 {
     public class Barrio
     {
-        public int IdBarrio { get; set; }
         public string Descripcion { get; set; }
+        public string IdBarrio { get; set; }
+        public string IdCiudad { get; set; }
+        public string IdProvincia { get; set; }
+
     }
 }
